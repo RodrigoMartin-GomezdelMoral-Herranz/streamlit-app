@@ -110,7 +110,6 @@ if st.sidebar.button("Train Bayesian Network"):
             for (source, target), properties in edge_properties.items()
         ])
 
-        # Crear y guardar la red con Pyvis
         net = Network(height="600px", width="100%", directed=True)
         for index, row in edges_df.iterrows():
             net.add_node(row["source"], label=row["source"])
@@ -119,7 +118,6 @@ if st.sidebar.button("Train Bayesian Network"):
         
         net.save_graph(trained_network_file)
 
-        # Guardar el estado de la red en la sesión
         st.session_state["trained_network"] = net
         st.session_state["CPDs"] = CPDs
         st.session_state["edges_df"] = edges_df
@@ -129,59 +127,57 @@ if st.sidebar.button("Train Bayesian Network"):
                 trained_network_html = f.read()
             st.session_state["trained_network_html"] = trained_network_html
         else:
-            st.error("Error al cargar la red entrenada. Asegúrate de que se haya generado correctamente.")
+            st.error("Error")
 
         st.success("Bayesian Network Trained and Visualized Successfully!")
 
 if st.session_state["trained_network"]:
     html(st.session_state["trained_network_html"], height=600)
 
-    with st.expander("See the conditional probabilities"):
+    with st.expander("Conditional probabilities"):
         node = st.selectbox(
-            "Select node",
+            "Select variable",
             list(st.session_state["CPDs"].keys())
         )
         if node is not None:
             st.write(st.session_state["CPDs"][node])
 
 if st.session_state["trained_network"]:
-    #st.markdown("---")
     st.header("Inference Calculator")
     st.markdown("* Use this section to infer probabilities for a selected variable given evidence.")
 
-    target_variable = st.selectbox(
-        "Select the variable to infer:",
-        list(selected_data.columns)
+    target_variable = st.selectbox("Target Variable", list(st.session_state["CPDs"].keys()))
+    
+
+    evidence_variables = st.multiselect(
+        "Select Evidence Variables",
+        [var for var in selected_data.columns if var != target_variable]
     )
+    
 
-    st.markdown("### Evidence Selection")
     evidence = {}
-    for col in selected_data.columns:
-        if col != target_variable:
-            unique_values = selected_data[col].value_counts().index.tolist()
-            evidence[col] = st.selectbox(
-                f"Select value for {col} (leave empty for no evidence):",
-                options=[""] + unique_values,
-                format_func=lambda x: "No Evidence" if x == "" else str(x)
-            )
-
-    evidence = {k: v for k, v in evidence.items() if v != ""}
-
-    if st.button("Infer"):
-        if evidence:
-            model = st.session_state.get("model")
+    if evidence_variables:
+        st.write("Provide values for selected variables:")
+        for var in evidence_variables:
+            unique_values = selected_data[var].value_counts().index.tolist()
+            evidence[var] = st.radio(f"Evidence for {var}:", unique_values)
+    
+    if st.button("Run Inference"):
+        if not evidence_variables:
+            st.warning("No evidence variables selected. Please select at least one.")
+        elif target_variable:
             try:
-                result = bn.inference.fit(
-                    model,
+                query_result = bn.inference.fit(
+                    st.session_state["model"],
                     variables=[target_variable],
-                    evidence=evidence
+                    evidence=evidence if evidence else None
                 )
-                st.success(f"Inference successful for {target_variable}!")
-                st.write(result)
+                st.write(f"Inference result for {target_variable}:")
+                st.write(query_result)
             except Exception as e:
                 st.error(f"Error during inference: {e}")
         else:
-            st.warning("Please provide at least one piece of evidence to infer probabilities.")
+            st.warning("Please select a target variable.")
 
 st.markdown("---")
 st.markdown("Second version v2")
