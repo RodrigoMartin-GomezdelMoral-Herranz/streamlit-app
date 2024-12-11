@@ -190,7 +190,11 @@ if st.session_state["trained_network"]:
     st.header("Inference Calculator")
     st.markdown("* Use this section to infer probabilities for a selected variable given evidence.")
 
-    target_variable = st.selectbox("Target Variable", list(st.session_state["CPDs"].keys()))
+    target_variable = st.selectbox(
+        "Target Variable",
+        list(st.session_state["CPDs"].keys()),
+        index=list(st.session_state["CPDs"].keys()).index("ADHERENCE_Medication")
+    )
 
     evidence_variables = st.multiselect(
         "Evidence Variables",
@@ -223,4 +227,4 @@ if st.session_state["trained_network"]:
             st.warning("Please select a target variable.")
 
 st.markdown("---")
-st.markdown("Second version v2.2")
+st.markdown("Second version v2.3")
