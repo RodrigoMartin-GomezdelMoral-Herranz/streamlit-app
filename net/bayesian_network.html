@@ -88,8 +88,8 @@
                   
 
                   // parsing and collecting nodes and edges from the python
-                  nodes = new vis.DataSet([{"color": "#97c2fc", "id": "NUM_MEDICAMENTOS_category", "label": "NUM_MEDICAMENTOS_category", "shape": "dot"}, {"color": "#97c2fc", "id": "Endocrinological_Boolean", "label": "Endocrinological_Boolean", "shape": "dot"}, {"color": "#97c2fc", "id": "Smoker", "label": "Smoker", "shape": "dot"}, {"color": "#97c2fc", "id": "ADHERENCE_Medication", "label": "ADHERENCE_Medication", "shape": "dot"}]);
-                  edges = new vis.DataSet([{"arrows": "to", "from": "NUM_MEDICAMENTOS_category", "to": "Endocrinological_Boolean", "value": 3.5675882982922653}, {"arrows": "to", "from": "NUM_MEDICAMENTOS_category", "to": "Smoker", "value": 1.0}, {"arrows": "to", "from": "ADHERENCE_Medication", "to": "Endocrinological_Boolean", "value": 2.574445243710924}, {"arrows": "to", "from": "ADHERENCE_Medication", "to": "NUM_MEDICAMENTOS_category", "value": 5.0}, {"arrows": "to", "from": "ADHERENCE_Medication", "to": "Smoker", "value": 1.0411795067623102}]);
+                  nodes = new vis.DataSet([{"color": "#97c2fc", "id": "ADHERENCE_Medication", "label": "ADHERENCE_Medication", "shape": "dot"}, {"color": "#97c2fc", "id": "NUM_MEDICAMENTOS_category", "label": "NUM_MEDICAMENTOS_category", "shape": "dot"}]);
+                  edges = new vis.DataSet([{"arrows": "to", "from": "ADHERENCE_Medication", "to": "NUM_MEDICAMENTOS_category", "value": 1.0}]);
 
                   nodeColors = {};
                   allNodes = nodes.get({ returnType: "Object" });

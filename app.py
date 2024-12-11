@@ -52,7 +52,7 @@ mapped_params = map_parameters(strategy, scoring_method, method_type, score_type
 
 st.header("Training and Visualization")
 
-basic_network_file = "net/net.html"
+#basic_network_file = "net/starting_net.html"
 trained_network_file = "net/bayesian_network.html"
 
 #keys = None
@@ -68,6 +68,44 @@ if "trained_network" not in st.session_state:
     st.session_state["trained_network"] = None
     st.session_state["CPDs"] = None
     st.session_state["edges_df"] = None
+    
+    default_structure = bn.structure_learning.fit(
+        selected_data,
+        methodtype=mapped_params["structure_strategy"],
+        scoretype=mapped_params["structure_scoring"]
+    )
+    default_structure = bn.independence_test(
+        default_structure,
+        selected_data,
+        alpha=0.05,
+        prune=False
+    )
+    default_model = bn.parameter_learning.fit(
+        default_structure,
+        selected_data,
+        methodtype=mapped_params["parameter_method"],
+        scoretype=mapped_params["parameter_score"]
+    )
+    st.session_state["model"] = default_model
+
+    st.session_state["CPDs"] = bn.print_CPD(default_model)
+    default_properties = bn.plot(default_structure)
+    edge_properties = default_properties["edge_properties"]
+    st.session_state["edges_df"] = pd.DataFrame([
+        {"source": source, "target": target, "weight": properties["weight"]}
+        for (source, target), properties in edge_properties.items()
+    ])
+
+    default_net = Network(height="600px", width="100%", directed=True)
+    for index, row in st.session_state["edges_df"].iterrows():
+        default_net.add_node(row["source"], label=row["source"])
+        default_net.add_node(row["target"], label=row["target"])
+        default_net.add_edge(row["source"], row["target"], value=row["weight"])
+    default_net.save_graph(trained_network_file)
+
+    with open(trained_network_file, "r", encoding="utf-8") as f:
+        st.session_state["trained_network_html"] = f.read()
+    st.session_state["trained_network"] = default_net
 
 if st.sidebar.button("Train Bayesian Network"):
     with st.spinner("Training Bayesian Network..."):
@@ -135,22 +173,27 @@ if st.session_state["trained_network"]:
     html(st.session_state["trained_network_html"], height=600)
 
     with st.expander("Conditional probabilities"):
-        node = st.selectbox(
-            "Select variable",
-            list(st.session_state["CPDs"].keys())
-        )
-        if node is not None:
-            st.write(st.session_state["CPDs"][node])
+        if st.session_state["CPDs"]:
+            node = st.selectbox(
+                "Select variable",
+                list(st.session_state["CPDs"].keys())
+            )
+            if node:
+                st.write(st.session_state["CPDs"][node])
+        else:
+            st.warning("No conditional probabilities available.")
+else:
+    st.warning("No trained network available. Default network loaded.")
+
 
 if st.session_state["trained_network"]:
     st.header("Inference Calculator")
     st.markdown("* Use this section to infer probabilities for a selected variable given evidence.")
 
     target_variable = st.selectbox("Target Variable", list(st.session_state["CPDs"].keys()))
-    
 
     evidence_variables = st.multiselect(
-        "Select Evidence Variables",
+        "Evidence Variables",
         [var for var in selected_data.columns if var != target_variable]
     )
     
@@ -162,7 +205,7 @@ if st.session_state["trained_network"]:
             unique_values = selected_data[var].value_counts().index.tolist()
             evidence[var] = st.radio(f"Evidence for {var}:", unique_values)
     
-    if st.button("Run Inference"):
+    if st.button("Perform Inference"):
         if not evidence_variables:
             st.warning("No evidence variables selected. Please select at least one.")
         elif target_variable:
@@ -172,7 +215,7 @@ if st.session_state["trained_network"]:
                     variables=[target_variable],
                     evidence=evidence if evidence else None
                 )
-                st.write(f"Inference result for {target_variable}:")
+                #st.write(f"Inference result for {target_variable}:")
                 st.write(query_result)
             except Exception as e:
                 st.error(f"Error during inference: {e}")
@@ -180,4 +223,4 @@ if st.session_state["trained_network"]:
             st.warning("Please select a target variable.")
 
 st.markdown("---")
-st.markdown("Second version v2")
+st.markdown("Second version v2.2")
