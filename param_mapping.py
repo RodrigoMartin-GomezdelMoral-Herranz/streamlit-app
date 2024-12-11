@@ -15,7 +15,6 @@ def map_parameters(strategy, scoring_method, method_type, score_type):
     """
     # Mapeo para la estrategia de búsqueda (structure learning)
     strategy_mapping = {
-        "Peter-Clark": "pc",
         "Hill-Climbsearch": "hc",
         "NaiveBayes": "nb"
     }
@@ -28,8 +27,7 @@ def map_parameters(strategy, scoring_method, method_type, score_type):
     
     # Mapeo para los métodos de aprendizaje paramétrico
     method_type_mapping = {
-        "Maximum Likelihood Estimation": "ml",
-        "Bayesian Estimation": "bayes"
+        "Maximum Likelihood Estimation": "ml"
     }
     
     # Mapeo para los métodos de scoring en aprendizaje paramétrico
